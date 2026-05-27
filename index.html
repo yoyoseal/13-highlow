@@ -32,23 +32,24 @@
       box-sizing: border-box;
     }
 
-    html {
-      min-height: 100%;
-      background: var(--page-bg-color);
-    }
+    html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.85)),
+    url("./background.jpg") center / cover no-repeat fixed;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  color: var(--text);
+}
 
-    body {
-      min-height: 100vh;
-      margin: 0;
-      background-color: var(--page-bg-color);
-      background-image: var(--page-bg-image);
-      background-size: cover;
-      background-position: center center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-      color: var(--text);
-    }
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
 
     .game-wrap {
       width: min(760px, 100%);
