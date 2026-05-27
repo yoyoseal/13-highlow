@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>蝦蟇賭場： High / Low</title>
+
+  <style>
+    /*
+      ===== GitHub Pages 背景設定 =====
+      預設是黑色底。
+      如果之後想放背景圖：
+      1. 在 GitHub 專案裡新增 images 資料夾
+      2. 放入背景圖，例如 images/background.png
+      3. 把 --page-bg-image: none; 改成：
+         --page-bg-image: url("./images/background.png");
+    */
+    :root {
+      --page-bg-color: #000000;
+      --page-bg-image: none;
+
+      --bg: #000000;
+      --panel: #050505;
+      --text: #ffffff;
+      --muted: #a8a8a8;
+      --red: #ff0000;
+      --dark-red: #520000;
+      --line: 1px solid var(--red);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--page-bg-color);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background-color: var(--page-bg-color);
+      background-image: var(--page-bg-image);
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+    }
+
+    .game-wrap {
+      width: min(760px, 100%);
+      min-height: 560px;
+      margin: 0 auto;
+      background: var(--bg);
+      border: 1px solid #000000;
+      color: var(--text);
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .top-bar {
+      border-bottom: var(--line);
+      padding: 10px 12px;
+      background: var(--bg);
+    }
+
+    .location-title {
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .location-title span {
+      color: var(--red);
+    }
+
+    .main-area {
+      display: grid;
+      grid-template-columns: 225px 1fr;
+      min-height: 510px;
+    }
+
+    /*
+      ===== 左側人物欄 =====
+    */
+    .npc-panel {
+      border-right: var(--line);
+      padding: 42px 20px 18px;
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: start;
+      gap: 18px;
+      background: var(--bg);
+    }
+
+    .npc-name-small {
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .npc-name {
+      color: var(--red);
+      font-size: 32px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    /*
+      左側角色圖片框
+    */
+    .npc-image-box {
+      width: 100%;
+      min-height: 250px;
+      display: grid;
+      place-items: center;
+      color: var(--dark-red);
+      font-size: 94px;
+      font-family: Georgia, serif;
+      user-select: none;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .npc-image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .npc-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      padding-bottom: 10px;
+    }
+
+    /*
+      ===== 右側遊戲區 =====
+    */
+    .play-panel {
+      padding: 14px 14px 16px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+      background: var(--bg);
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: 1fr 150px 1fr;
+      gap: 14px;
+      align-items: start;
+      justify-items: center;
+      padding-top: 2px;
+    }
+
+    .card-slot {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      min-width: 130px;
+    }
+
+    .card-title {
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .cards {
+      min-height: 158px;
+      display: grid;
+      place-items: center;
+    }
+
+    /*
+      牌面預設文字
+    */
+    .card {
+      width: 112px;
+      height: 154px;
+      border: var(--line);
+      background: #000000;
+      color: var(--red);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 34px;
+      position: relative;
+      overflow: hidden;
+      text-shadow: 0 0 8px rgba(255, 0, 0, 0.55);
+    }
+
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      text-shadow: none;
+    }
+
+    .card.hidden {
+      background: #000000;
+      color: var(--red);
+      border: var(--line);
+      font-size: 42px;
+    }
+
+    .card.special-card {
+      font-size: 18px;
+      line-height: 1.45;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .card-value {
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    .choice-area {
+      display: grid;
+      gap: 12px;
+      padding-top: 38px;
+      width: 100%;
+    }
+
+    .choice-area button {
+      width: 100%;
+    }
+
+    .start-under-card {
+      width: 100%;
+      min-width: 118px;
+      margin-top: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      width: 100%;
+      align-items: center;
+      margin-top: -2px;
+    }
+
+    .score-box {
+      padding: 6px 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .score-box span {
+      color: var(--red);
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .dialogue-box {
+      border: var(--line);
+      padding: 16px 18px;
+      min-height: 190px;
+      background: var(--bg);
+      align-self: end;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .speaker {
+      color: var(--red);
+      font-weight: 800;
+      margin-bottom: 10px;
+      font-size: 18px;
+      letter-spacing: 0.06em;
+    }
+
+    .dialogue-text {
+      line-height: 1.9;
+      white-space: pre-line;
+      font-weight: 700;
+    }
+
+    button {
+      background: #000000;
+      color: var(--text);
+      border: var(--line);
+      border-radius: 0;
+      padding: 10px 18px;
+      min-width: 118px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--red);
+      color: #000000;
+    }
+
+    button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 640px) {
+      .game-wrap {
+        min-height: auto;
+      }
+
+      .main-area {
+        grid-template-columns: 1fr;
+      }
+
+      .npc-panel {
+        border-right: none;
+        border-bottom: var(--line);
+        min-height: 320px;
+      }
+
+      .npc-image-box {
+        min-height: 170px;
+      }
+
+      .game-board {
+        grid-template-columns: 1fr;
+      }
+
+      .choice-area {
+        grid-template-columns: 1fr 1fr;
+        padding-top: 0;
+      }
+
+      .score-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .dialogue-box {
+        min-height: 160px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrap">
+    <header class="top-bar">
+      <div class="location-title">火野警察局 <span>河間夜賭會</span></div>
+    </header>
+
+    <main class="main-area">
+      <aside class="npc-panel">
+        <div id="npcImageBox" class="npc-image-box">♥</div>
+
+        <div class="npc-note">「一起來玩吧！」<br>「不用賭錢，也不要給我籌碼！」<br>「我只是好奇你的運氣有多好。」<br>十三號玩著手裡的紙牌……</div>
+      </aside>
+
+      <section class="play-panel">
+        <div class="game-board">
+          <div class="card-slot">
+            <div class="card-title">目標牌</div>
+            <div id="targetCards" class="cards"></div>
+          </div>
+
+          <div class="choice-area">
+            <button id="higherBtn" disabled>比目標牌高</button>
+            <button id="startBtn" class="start-under-card">開始</button>
+            <button id="lowerBtn" disabled>比目標牌低</button>
+          </div>
+
+          <div class="card-slot">
+            <div class="card-title">你的牌</div>
+            <div id="playerCards" class="cards"></div>
+          </div>
+        </div>
+
+        <div class="score-row">
+          <div class="score-box">最高連勝：<span id="bestStreakDisplay">0</span></div>
+          <div class="score-box">累積連勝：<span id="streakDisplay">0</span></div>
+          <div class="score-box">嘗試次數：<span id="attemptDisplay">0</span></div>
+        </div>
+
+        <div class="dialogue-box">
+          <div class="speaker">十三號</div>
+          <div id="dialogueText" class="dialogue-text"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function safeGetStorage(key, fallbackValue) {
+      try {
+        return localStorage.getItem(key) || fallbackValue;
+      } catch (error) {
+        return fallbackValue;
+      }
+    }
+
+    function safeSetStorage(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (error) {
+        // 儲存失敗時略過　不中斷遊戲
+      }
+    }
+
+    const BEST_STREAK_STORAGE_KEY = "number13_highlow_best_streak_v2";
+
+    const NPC_IMAGES = {
+      default: "https://static.wixstatic.com/media/b51aac_715a4b2b7e5c4e38ba731d019a9831cc~mv2.gif",
+      playing: "https://static.wixstatic.com/media/b51aac_093028e26c1a42818650860a8d6418bf~mv2.gif",
+      pass: "https://static.wixstatic.com/media/b51aac_82faedd91b0f49f29191209057af4e64~mv2.gif",
+      fail: "https://static.wixstatic.com/media/b51aac_dd7fe317866e4d2ab7d8e0041404b43a~mv2.gif",
+      streak3: "https://static.wixstatic.com/media/b51aac_2104f709bad542309b383bd6cea5893a~mv2.gif",
+      streak6: "https://static.wixstatic.com/media/b51aac_16cc5b97976e4727ae754d97727a3153~mv2.gif",
+      streak9: "https://static.wixstatic.com/media/b51aac_82faedd91b0f49f29191209057af4e64~mv2.gif",
+      streak13: "https://static.wixstatic.com/media/b51aac_65bb02acc8d748fa9294be695f4a0a40~mv2.gif",
+      special: "https://static.wixstatic.com/media/b51aac_91196cf06fed47e5abee5e0ec5a0bd10~mv2.gif"
+    };
+
+    const CARD_IMAGES = {
+      H2: "https://static.wixstatic.com/media/b51aac_26e0ffafb1784731b83fc888716576b0~mv2.gif",
+      H3: "https://static.wixstatic.com/media/b51aac_433ce5f20dd747a1920abc5ec02e3d99~mv2.gif",
+      H4: "https://static.wixstatic.com/media/b51aac_f1a76251e8b74f9f9776e716ba811515~mv2.gif",
+      H5: "https://static.wixstatic.com/media/b51aac_345571c8c4b74584bfb0acdced022cc3~mv2.gif",
+      H6: "https://static.wixstatic.com/media/b51aac_34ca7411853946a4a84f44e1d1c12d7e~mv2.gif",
+      H7: "https://static.wixstatic.com/media/b51aac_765613799ad44e2cba9f81ac2ff897bb~mv2.gif",
+      H8: "https://static.wixstatic.com/media/b51aac_fb7c394d3e844eea87acf92e791ffe37~mv2.gif",
+      H9: "https://static.wixstatic.com/media/b51aac_ccec1c0e9f87482bb6e6b55c10286fd7~mv2.gif",
+      H10: "https://static.wixstatic.com/media/b51aac_de697487e96340049e0ed33ffcb15e16~mv2.gif",
+      HJ: "https://static.wixstatic.com/media/b51aac_4651c29ea4804058b326c78def0acaeb~mv2.gif",
+      HQ: "https://static.wixstatic.com/media/b51aac_f55951d62e01445d86b854362693701e~mv2.gif",
+      SPECIAL: "https://static.wixstatic.com/media/b51aac_83a9b99c8f9b40b6be678d176afe77d8~mv2.gif"
+    };
+
+    const NORMAL_CARDS = [
+      { key: "H2", label: "2♥", value: 2, special: false },
+      { key: "H3", label: "3♥", value: 3, special: false },
+      { key: "H4", label: "4♥", value: 4, special: false },
+      { key: "H5", label: "5♥", value: 5, special: false },
+      { key: "H6", label: "6♥", value: 6, special: false },
+      { key: "H7", label: "7♥", value: 7, special: false },
+      { key: "H8", label: "8♥", value: 8, special: false },
+      { key: "H9", label: "9♥", value: 9, special: false },
+      { key: "H10", label: "10♥", value: 10, special: false },
+      { key: "HJ", label: "J♥", value: 11, special: false },
+      { key: "HQ", label: "Q♥", value: 12, special: false }
+    ];
+
+    const SPECIAL_CARD = {
+      key: "SPECIAL",
+      label: `特殊牌`,
+      value: null,
+      special: true
+    };
+
+    const PLAYER_CARDS = [...NORMAL_CARDS, SPECIAL_CARD];
+
+    const lines = {
+      opening: [
+        `你好！我們來玩高低牌吧！`,
+        `規則很簡單，我會抽一張目標牌，你猜你的牌會比它高或是低。`,
+        `不收籌碼喔，我不喜歡算那個東西。`
+      ],
+      start: [
+        `目標牌翻好了，來猜猜看？`,
+        `翻囉！
+換你啦。`,
+        `話說你應該沒有去找篠宮賭博吧？`,
+        `翻好啦。（十三號看著目標牌的點數……）`,
+        `如何？
+你覺得自己的牌會更高？還是更低？。`
+      ],
+      pass: [
+        `哦哦，猜對了！
+你很厲害呢。`,
+        `猜中了！
+那我來翻下一張……`,
+        `（十三號看著你笑。）
+運氣很好呢。`
+      ],
+      tie: [
+        `點數一樣也算過！`,
+        `哦哦，
+其實這樣的運氣也算很好吧？`,
+        `一樣呢，那我來翻下一張……`
+      ],
+      fail: [
+        `啊，真可惜。
+要重頭開始啦。`,
+        `斷了！
+不過我們還是可以繼續玩。`,
+        `猜錯囉。
+不用氣餒，繼續陪我玩吧？`
+      ],
+      special: [
+        `……這是什麼牌？
+怎麼沾了一堆血？`,
+        `……？
+你說上面印著火野明正？我什麼都沒看到啊。`,
+        `呃呃呃──
+算通過吧？奇怪…………`
+      ],
+      streak3: [
+        `三回連勝！
+運氣不錯哦？（十三號幫你加油……）`,
+        `連勝三次啦。
+對自己有信心一點！繼續賭！`
+      ],
+      streak6: [
+        `六回連勝！
+保持下去，加油！（十三號幫你加油……）`,
+        `連勝六次啦。
+你可別覺得自己運氣正好就去找篠宮賭博啊。`
+      ],
+      streak9: [
+        `九回連勝！
+我開始佩服你了，真厲害。`,
+        `連勝九次啦……你該不會……作牌？
+……開玩笑的──（十三號擺了擺手。）`
+      ],
+      streak13: [
+        `祝十三回連勝！
+你的運氣真好，好想跟你玩俄羅斯輪盤……啊，我什麼都沒說！`
+      ]
+    };
+
+    let streak = 0;
+    let attempts = 0;
+    let bestStreak = Number(safeGetStorage(BEST_STREAK_STORAGE_KEY, "0"));
+    let targetCard = null;
+    let playerCard = null;
+    let phase = "idle";
+
+    const streakDisplay = document.getElementById("streakDisplay");
+    const bestStreakDisplay = document.getElementById("bestStreakDisplay");
+    const attemptDisplay = document.getElementById("attemptDisplay");
+    const dialogueText = document.getElementById("dialogueText");
+    const targetCards = document.getElementById("targetCards");
+    const playerCards = document.getElementById("playerCards");
+    const npcImageBox = document.getElementById("npcImageBox");
+
+    const startBtn = document.getElementById("startBtn");
+    const higherBtn = document.getElementById("higherBtn");
+    const lowerBtn = document.getElementById("lowerBtn");
+
+    function randomOf(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function say(line) {
+      dialogueText.textContent = line;
+    }
+
+    function drawFrom(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function setNpcImage(state = "default") {
+      const selectedUrl = NPC_IMAGES[state] || NPC_IMAGES.default;
+      npcImageBox.innerHTML = "";
+
+      if (!selectedUrl) {
+        npcImageBox.textContent = "♥";
+        return;
+      }
+
+      const img = document.createElement("img");
+      img.src = selectedUrl;
+      img.alt = `十三號：${state}`;
+      npcImageBox.appendChild(img);
+    }
+
+    function makeCardElement(card, hidden = false) {
+      const el = document.createElement("div");
+
+      if (hidden) {
+        el.className = "card hidden";
+        el.textContent = "?";
+        return el;
+      }
+
+      el.className = card.special ? "card special-card" : "card";
+
+      const imageUrl = CARD_IMAGES[card.key];
+      if (imageUrl) {
+        const img = document.createElement("img");
+        img.src = imageUrl;
+        img.alt = card.label.split(String.fromCharCode(10)).join("");
+        el.appendChild(img);
+      } else {
+        el.textContent = card.label;
+      }
+
+      return el;
+    }
+
+    function renderCards(showPlayer = false) {
+      targetCards.innerHTML = "";
+      playerCards.innerHTML = "";
+
+      if (targetCard) {
+        targetCards.appendChild(makeCardElement(targetCard));
+      } else {
+        targetCards.appendChild(makeCardElement({ label: "?", key: "", special: false }, true));
+      }
+
+      if (showPlayer && playerCard) {
+        playerCards.appendChild(makeCardElement(playerCard));
+      } else {
+        playerCards.appendChild(makeCardElement({ label: "?", key: "", special: false }, true));
+      }
+    }
+
+    function updateScores() {
+      if (streak > bestStreak) {
+        bestStreak = streak;
+        safeSetStorage(BEST_STREAK_STORAGE_KEY, bestStreak.toString());
+      }
+
+      streakDisplay.textContent = streak.toString();
+      bestStreakDisplay.textContent = bestStreak.toString();
+      attemptDisplay.textContent = attempts.toString();
+    }
+
+    function setButtons({ start, higher, lower }) {
+      startBtn.disabled = !start;
+      higherBtn.disabled = !higher;
+      lowerBtn.disabled = !lower;
+    }
+
+    function startRound() {
+      phase = "guessing";
+      targetCard = drawFrom(NORMAL_CARDS);
+      playerCard = null;
+
+      setNpcImage("playing");
+      startBtn.textContent = "重新抽牌";
+      say(randomOf(lines.start));
+      renderCards(false);
+      setButtons({ start: true, higher: true, lower: true });
+    }
+
+    function makeGuess(guess) {
+      if (phase !== "guessing") return;
+
+      phase = "revealed";
+      attempts++;
+      updateScores();
+      playerCard = drawFrom(PLAYER_CARDS);
+      renderCards(true);
+
+      if (playerCard.special) {
+        passRound("special");
+        return;
+      }
+
+      if (playerCard.value === targetCard.value) {
+        passRound("tie");
+        return;
+      }
+
+      const isHigher = playerCard.value > targetCard.value;
+      const correct =
+        (guess === "higher" && isHigher) ||
+        (guess === "lower" && !isHigher);
+
+      if (correct) {
+        passRound("normal");
+      } else {
+        failRound();
+      }
+    }
+
+    function passRound(reason) {
+      streak++;
+      updateScores();
+      startBtn.textContent = "下一回合";
+      setButtons({ start: true, higher: false, lower: false });
+
+      const milestone = getMilestoneState(streak);
+
+      if (reason === "special") {
+        const extra = milestone ? `
+累積連勝達到 ${streak}。十三號小聲地替你鼓掌。` : "";
+        say(randomOf(lines.special) + extra);
+        setNpcImage("special");
+        return;
+      }
+
+      if (milestone) {
+        say(randomOf(lines[milestone]));
+        setNpcImage(milestone);
+        return;
+      }
+
+      if (reason === "tie") {
+        say(randomOf(lines.tie));
+      } else {
+        say(randomOf(lines.pass));
+      }
+
+      setNpcImage("pass");
+    }
+
+    function failRound() {
+      streak = 0;
+      updateScores();
+      startBtn.textContent = "重新開始";
+      say(randomOf(lines.fail));
+      setNpcImage("fail");
+      setButtons({ start: true, higher: false, lower: false });
+    }
+
+    function getMilestoneState(value) {
+      if (value === 3) return "streak3";
+      if (value === 6) return "streak6";
+      if (value === 9) return "streak9";
+      if (value === 13) return "streak13";
+      return null;
+    }
+
+    startBtn.addEventListener("click", startRound);
+    higherBtn.addEventListener("click", () => makeGuess("higher"));
+    lowerBtn.addEventListener("click", () => makeGuess("lower"));
+
+    setNpcImage("default");
+    updateScores();
+    say(randomOf(lines.opening));
+    renderCards(false);
+    setButtons({ start: true, higher: false, lower: false });
+  </script>
+</body>
+</html>
